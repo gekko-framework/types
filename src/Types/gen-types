@@ -1,0 +1,96 @@
+#!/usr/bin/env php
+<?php
+/*
+ * (c) Leonardo Brugnara
+ *
+ * Full copyright and license information in LICENSE file.
+ */
+
+$types = [
+    // Name             extends         abstract    type
+    [ "Integer",        "Type",         true,       "int"           ],
+    [ "Byte",           "Integer",      false,      "int"           ],
+    [ "Int16",          "Integer",      false,      "int"           ],
+    [ "Int32",          "Integer",      false,      "int"           ],
+    [ "Int64",          "Integer",      false,      "int"           ],
+
+    [ "Real",           "Type",         true,       "float"         ],
+    [ "Float32",        "Real",         false,      "float"         ],
+    [ "Double64",       "Real",         false,      "float"         ],
+    [ "Decimal",        "Real",         false,      "float"         ],
+    
+    [ "Boolean",        "Type",         false,      "boolean"       ],
+
+    [ "Str",            "Type",         true,       "string"        ],
+    [ "Text",           "Str",          false,      "string"        ],
+    [ "Char",           "Str" ,         false,      "string"        ],
+    [ "Varchar",        "Str" ,         false,      "string"        ],
+
+    [ "Binary",         "Type",         false,      "string"        ],
+    [ "Blob",           "Type",         false,      "string"        ],
+
+    [ "Date",           "Type",         true,       "\DateTime"     ],
+    [ "DateTime",       "Date",         false,      "\DateTime"     ],
+    [ "Time",           "Date",         false,      "\DateInterval" ],
+    [ "Timestamp",      "Date",         false,      "int"           ]
+];
+
+foreach ($types as $typefile) {
+    $file = __DIR__ . DIRECTORY_SEPARATOR . "{$typefile[0]}.php";
+    
+    if (file_exists($file))
+        unlink($file);
+}
+
+foreach ($types as $type) {
+    $output = render($type);
+
+    file_put_contents(__DIR__ . DIRECTORY_SEPARATOR . "{$type[0]}.php", $output);
+}
+
+function render(array $type) : string
+{
+    ob_start();
+// Render
+?>
+<?= '<?php' ?>
+
+/*
+* (c) Leonardo Brugnara
+*
+* Full copyright and license information in LICENSE file.
+*/
+
+namespace Gekko\Types;
+
+<?= isset($type[2]) && $type[2] ? "abstract " : "" ?>class <?= $type[0] ?><?= isset($type[1]) ? " extends {$type[1]}" : "" ?>
+
+{
+    <?php if (!isset($type[2]) || !$type[2]): ?>
+private static $instance;
+
+    protected function __construct()
+    {
+        parent::__construct(\Gekko\Types\<?= $type[0] ?>::class);
+    }
+
+    public static function instance() : <?= "Type" //$type[0] ?>
+
+    {
+        if (self::$instance == null)
+            self::$instance = new <?= $type[0] ?>;
+        return self::$instance;
+    }
+    <?php endif; ?>
+
+    public function raw() : string
+    {
+        return '<?= $type[3] ?>';
+    }
+
+}
+<?php // Render
+    return ob_get_clean();
+}
+
+?>
