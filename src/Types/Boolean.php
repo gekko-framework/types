@@ -25,7 +25,7 @@ class Boolean extends Type
     
     public function raw() : string
     {
-        return 'boolean';
+        return 'bool';
     }
 
 }
